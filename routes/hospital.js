@@ -16,10 +16,10 @@ app.get('/', function(req, res, next) {
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Hospital.find({})
+    Hospital.find({}, 'nombre img')
         .skip(desde)
         .limit(5)
-        .populate('usuario', 'nombre email')
+        // .populate('usuario', 'nombre email')
         .exec(function(err, hospitales) {
             if (err) {
                 return res.status(500).json({
@@ -39,12 +39,43 @@ app.get('/', function(req, res, next) {
 });
 
 // =============================================
+// Obtener Hospital por ID
+// =============================================
+
+app.get('/:id', function(req, res) {
+    var id = req.params.id;
+    Hospital.findById(id)
+        .populate('usuario', 'nombre img email')
+        .exec(function(err, hospital) {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error al buscar hospital',
+                    errors: err
+                });
+            }
+            if (!hospital) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'El hospital con el id ' + id + ' no existe',
+                    errors: { mensaje: 'No existe un hospital con ese id' }
+                });
+            }
+            res.status(200).json({
+                ok: true,
+                hospital: hospital
+            });
+        });
+});
+
+// =============================================
 // Actualizar Hospital
 // =============================================
 
 app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
     var id = req.params.id;
     var body = req.body;
+    var date = new Date() - 18000000;
     Hospital.findById(id, function(err, hospital) {
         if (err) {
             return res.status(500).json({
@@ -62,7 +93,9 @@ app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
         }
 
         hospital.nombre = body.nombre;
-        hospital.usuario = req.usuario._id;
+        hospital.modifiedBy = body.usuario._id;
+        hospital.modifiedDate = date.toString();
+        // hospital.usuario = req.usuario._id;
 
         hospital.save(function(err, hospitalGuardado) {
             if (err) {
@@ -87,10 +120,15 @@ app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
 
 app.post('/', mdAutenticacion.verificaToken, function(req, res) {
     var body = req.body;
+    var date = new Date() - 18000000;
 
     var hospital = new Hospital({
         nombre: body.nombre,
-        usuario: req.usuario._id
+        createdBy: body.usuario._id,
+        modifiedBy: body.usuario._id,
+        createDate: date.toString(),
+        modifiedDate: date.toString()
+            // usuario: req.usuario._id
     });
 
     hospital.save(function(err, hospitalGuardado) {

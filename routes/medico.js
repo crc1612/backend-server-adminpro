@@ -18,11 +18,11 @@ app.get('/', function(req, res, next) {
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Medico.find({})
+    Medico.find({}, 'nombre img hospital')
         .skip(desde)
         .limit(5)
-        .populate('usuario', 'nombre email')
-        .populate('hospital')
+        // .populate('usuario', 'nombre email')
+        //.populate('hospital')
         .exec(function(err, medicos) {
             if (err) {
                 return res.status(500).json({
@@ -31,7 +31,7 @@ app.get('/', function(req, res, next) {
                     errors: err
                 });
             }
-            Medico.count({}, function(err, conteo) {
+            Medico.countDocuments({}, function(err, conteo) {
                 res.status(200).json({
                     ok: true,
                     medicos: medicos,
@@ -48,6 +48,7 @@ app.get('/', function(req, res, next) {
 app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
     var id = req.params.id;
     var body = req.body;
+    var date = new Date() - 18000000;
     Medico.findById(id, function(err, medico) {
         if (err) {
             return res.status(500).json({
@@ -65,8 +66,9 @@ app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
         }
 
         medico.nombre = body.nombre;
-        medico.usuario = req.usuario._id;
+        medico.modifiedBy = body.usuario._id;
         medico.hospital = body.hospital;
+        medico.modifiedDate = date.toString();
 
         medico.save(function(err, medicoGuardado) {
             if (err) {
@@ -91,12 +93,15 @@ app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
 
 app.post('/', mdAutenticacion.verificaToken, function(req, res) {
     var body = req.body;
-
+    var date = new Date() - 18000000;
     var medico = new Medico({
         nombre: body.nombre,
-        usuario: req.usuario,
+        createdBy: body.usuario._id,
+        modifiedBy: body.usuario._id,
         hospital: body.hospital,
-        img: body.img
+        // img: body.img,
+        createDate: date.toString(),
+        modifiedDate: date.toString()
     });
 
     medico.save(function(err, medicoGuardado) {

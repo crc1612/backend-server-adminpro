@@ -19,7 +19,7 @@ app.get('/', function(req, res, next) {
     desde = Number(desde);
 
 
-    Usuario.find({}, 'nombre email img role')
+    Usuario.find({}, 'nombre email img role google')
         .skip(desde)
         .limit(5)
         .exec(function(err, usuarios) {
@@ -30,7 +30,7 @@ app.get('/', function(req, res, next) {
                     errors: err
                 });
             }
-            Usuario.count({}, function(err, conteo) {
+            Usuario.countDocuments({}, function(err, conteo) {
                 res.status(200).json({
                     ok: true,
                     usuarios: usuarios,
@@ -46,6 +46,7 @@ app.get('/', function(req, res, next) {
 // =============================================
 
 app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
+    var date = new Date() - 18000000;
     var id = req.params.id;
     var body = req.body;
     Usuario.findById(id, function(err, usuario) {
@@ -67,6 +68,8 @@ app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
         usuario.nombre = body.nombre;
         usuario.email = body.email;
         usuario.role = body.role;
+        usuario.modifiedBy = body.updateBody._id;
+        usuario.modifiedDate = date.toString();
 
         usuario.save(function(err, usuarioGuardado) {
             if (err) {
@@ -92,13 +95,17 @@ app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
 
 app.post('/', mdAutenticacion.verificaToken, function(req, res) {
     var body = req.body;
-
+    var date = new Date() - 18000000;
     var usuario = new Usuario({
         nombre: body.nombre,
         email: body.email,
         password: bcrypt.hashSync(body.password, 10),
         img: body.img,
-        role: body.role
+        role: body.role,
+        createdBy: body.updateBody._id,
+        modifiedBy: body.updateBody._id,
+        createDate: date.toString(),
+        modifiedDate: date.toString()
     });
 
     usuario.save(function(err, usuarioGuardado) {
@@ -109,6 +116,7 @@ app.post('/', mdAutenticacion.verificaToken, function(req, res) {
                 errors: err
             });
         }
+        Usuario.password = ':)';
         res.status(201).json({
             ok: true,
             usuario: usuarioGuardado,
@@ -140,6 +148,7 @@ app.delete('/:id', mdAutenticacion.verificaToken, function(req, res) {
                 errors: err
             });
         }
+        Usuario.password = ':)';
         res.status(200).json({
             ok: true,
             usuario: usuarioBorrado

@@ -12,10 +12,11 @@ var Hospital = require('../models/hospital');
 // default options
 app.use(fileUpload());
 
-app.put('/:tipo/:id', function(req, res, next) {
+app.put('/:tipo/:id/:user', function(req, res, next) {
 
     var tipo = req.params.tipo;
     var id = req.params.id;
+    var user = req.params.user;
 
     //tipos de coleccion
     var tiposValidos = ['hospitales', 'medicos', 'usuarios'];
@@ -31,7 +32,7 @@ app.put('/:tipo/:id', function(req, res, next) {
         return res.status(400).json({
             ok: false,
             mensaje: 'Error al cargar el archivo',
-            error: { message: 'Debe seleccionar un mensaje' }
+            error: { message: 'Debe seleccionar una imagen' }
         });
     }
 
@@ -66,11 +67,12 @@ app.put('/:tipo/:id', function(req, res, next) {
                 error: err
             });
         }
-        subirPorTipo(tipo, id, nombreArchivo, res);
+        subirPorTipo(tipo, id, user, nombreArchivo, res);
     });
 });
 
-function subirPorTipo(tipo, id, nombreArchivo, res) {
+function subirPorTipo(tipo, id, user, nombreArchivo, res) {
+    var date = new Date() - 18000000;
     if (tipo === 'usuarios') {
         Usuario.findById(id, function(err, usuario) {
             if (!usuario) {
@@ -86,6 +88,8 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
                 fs.unlinkSync(pathViejo);
             }
             usuario.img = nombreArchivo;
+            usuario.modifiedBy = user;
+            usuario.modifiedDate = date.toString();
             usuario.save(function(err, usuarioActualizado) {
                 usuarioActualizado.password = '=)';
                 return res.status(200).json({
@@ -111,6 +115,8 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
                 fs.unlinkSync(pathViejo);
             }
             hospital.img = nombreArchivo;
+            hospital.modifiedBy = user;
+            hospital.modifiedDate = date.toString();
             hospital.save(function(err, hospitalActualizado) {
                 return res.status(200).json({
                     ok: true,
@@ -135,6 +141,8 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
                 fs.unlinkSync(pathViejo);
             }
             medico.img = nombreArchivo;
+            medico.modifiedBy = user;
+            medico.modifiedDate = date.toString();
             medico.save(function(err, medicoActualizado) {
                 return res.status(200).json({
                     ok: true,
