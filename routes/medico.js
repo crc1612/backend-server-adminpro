@@ -45,7 +45,7 @@ app.get('/', function(req, res, next) {
 // Actualizar Medico
 // =============================================
 
-app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
+app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_Role], function(req, res) {
     var id = req.params.id;
     var body = req.body;
     var date = new Date() - 18000000;
@@ -91,7 +91,7 @@ app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
 // Crear un nuevo medico
 // =============================================
 
-app.post('/', mdAutenticacion.verificaToken, function(req, res) {
+app.post('/', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_Role], function(req, res) {
     var body = req.body;
     var date = new Date() - 18000000;
     var medico = new Medico({
@@ -125,7 +125,7 @@ app.post('/', mdAutenticacion.verificaToken, function(req, res) {
 // Eliminar Medico
 // =============================================
 
-app.delete('/:id', mdAutenticacion.verificaToken, function(req, res) {
+app.delete('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_Role], function(req, res) {
     var id = req.params.id;
 
     Medico.findByIdAndRemove(id, function(err, medicoBorrado) {

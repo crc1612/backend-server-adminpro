@@ -10,7 +10,7 @@ var app = express();
 
 var Usuario = require('../models/usuario');
 // =============================================
-// Obtneer todos los usuarios
+// Obtener todos los usuarios
 // =============================================
 
 app.get('/', function(req, res, next) {
@@ -45,7 +45,7 @@ app.get('/', function(req, res, next) {
 // Atualizar Usuario
 // =============================================
 
-app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
+app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminUsuario], function(req, res) {
     var date = new Date() - 18000000;
     var id = req.params.id;
     var body = req.body;
@@ -93,7 +93,7 @@ app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
 // Crear un nuevo usuario
 // =============================================
 
-app.post('/', mdAutenticacion.verificaToken, function(req, res) {
+app.post('/', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_Role], function(req, res) {
     var body = req.body;
     var date = new Date() - 18000000;
     var usuario = new Usuario({
@@ -126,11 +126,44 @@ app.post('/', mdAutenticacion.verificaToken, function(req, res) {
 
 });
 
+app.post('/register', function(req, res) {
+    var body = req.body;
+    var date = new Date() - 18000000;
+    var usuario = new Usuario({
+        nombre: body.nombre,
+        email: body.email,
+        password: bcrypt.hashSync(body.password, 10),
+        img: body.img,
+        role: body.role,
+        createdBy: body._id,
+        modifiedBy: body._id,
+        createDate: date.toString(),
+        modifiedDate: date.toString()
+    });
+
+    usuario.save(function(err, usuarioGuardado) {
+        if (err) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: 'Error al crear usuario',
+                errors: err
+            });
+        }
+        Usuario.password = ':)';
+        res.status(201).json({
+            ok: true,
+            usuario: usuarioGuardado,
+            usuariotoken: req.usuario
+        });
+    });
+
+});
+
 // =============================================
 // Eliminar Usuario
 // =============================================
 
-app.delete('/:id', mdAutenticacion.verificaToken, function(req, res) {
+app.delete('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_Role], function(req, res) {
     var id = req.params.id;
 
     Usuario.findByIdAndRemove(id, function(err, usuarioBorrado) {

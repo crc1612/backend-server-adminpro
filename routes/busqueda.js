@@ -78,7 +78,7 @@ function buscarHospitales(busqueda, regex) {
 
 function buscarUsuarios(busqueda, regex) {
     return new Promise(function(resolve, reject) {
-        Usuario.find({}, 'nombre email role')
+        Usuario.find({ nombre: regex }, 'nombre email img role')
             .or([{ 'nombre': regex }, { 'email': regex }])
             .exec(function(err, usuarios) {
                 if (err) {

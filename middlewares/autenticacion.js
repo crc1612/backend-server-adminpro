@@ -14,11 +14,48 @@ exports.verificaToken = function(req, res, next) {
                 errors: err
             });
         }
-        req.ususario = decoded.ususario;
+        req.usuario = decoded.usuario;
         next();
         /* res.status(200).json({
             ok: true,
             decoded: decoded
         }); */
     });
-}
+};
+
+// Verificar ADMIN
+
+exports.verificaAdmin_Role = function(req, res, next) {
+
+    var usuario = req.usuario;
+
+    if (usuario.role === 'ADMIN_ROLE') {
+        next();
+        return;
+    } else {
+        return res.status(401).json({
+            ok: false,
+            mensaje: 'Token incorrecto - No es administrador',
+            errors: { message: 'No es administrador, no puede realizar esta accion' }
+        });
+    }
+};
+
+// Verificar ADMIN o mismo Usuario
+
+exports.verificaAdminUsuario = function(req, res, next) {
+
+    var usuario = req.usuario;
+    var id = req.params.id;
+
+    if (usuario.role === 'ADMIN_ROLE' || usuario._id === id) {
+        next();
+        return;
+    } else {
+        return res.status(401).json({
+            ok: false,
+            mensaje: 'Token incorrecto - No es administrador',
+            errors: { message: 'No es administrador, no puede realizar esta accion' }
+        });
+    }
+};

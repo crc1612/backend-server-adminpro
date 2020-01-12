@@ -72,7 +72,7 @@ app.get('/:id', function(req, res) {
 // Actualizar Hospital
 // =============================================
 
-app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
+app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_Role], function(req, res) {
     var id = req.params.id;
     var body = req.body;
     var date = new Date() - 18000000;
@@ -118,7 +118,7 @@ app.put('/:id', mdAutenticacion.verificaToken, function(req, res) {
 // Crear un nuevo hospital
 // =============================================
 
-app.post('/', mdAutenticacion.verificaToken, function(req, res) {
+app.post('/', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_Role], function(req, res) {
     var body = req.body;
     var date = new Date() - 18000000;
 
@@ -151,7 +151,7 @@ app.post('/', mdAutenticacion.verificaToken, function(req, res) {
 // Eliminar Hospital
 // =============================================
 
-app.delete('/:id', mdAutenticacion.verificaToken, function(req, res) {
+app.delete('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_Role], function(req, res) {
     var id = req.params.id;
 
     Hospital.findByIdAndRemove(id, function(err, hospitalBorrado) {
